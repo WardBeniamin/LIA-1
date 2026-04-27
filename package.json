@@ -1,0 +1,19 @@
+{
+  "name": "lia-1",
+  "version": "1.0.0",
+  "description": "LIA-1 Flight Booking Application",
+  "scripts": {
+    "install:server": "cd server && npm install",
+    "build:server": "cd server && npm install",
+    "start:server": "cd server && npm start",
+    "dev:server": "cd server && npm run dev",
+    "install:client": "cd client && npm install",
+    "build:client": "cd client && npm run build",
+    "dev:client": "cd client && npm run dev",
+    "dev": "npm run dev:client & npm run dev:server"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  }
+}
