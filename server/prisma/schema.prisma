@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  bookings  Booking[]
+}
+
+model Operator {
+  id          String   @id @default(uuid())
+  companyName String
+  email       String   @unique
+  password    String
+  verified    Boolean  @default(false)
+  flights     Flight[]
+}
+
+model Flight {
+  id                String   @id @default(uuid())
+  departureLocation String
+  arrivalLocation   String
+  departureTime     DateTime
+  arrivalTime       DateTime
+  aircraftType      String
+  capacity          Int
+  price             Float?   // Optional for "Name your price"
+  status            String   @default("AVAILABLE") // AVAILABLE, BOOKED, CANCELLED
+  operatorId        String
+  operator          Operator @relation(fields: [operatorId], references: [id])
+  bookings          Booking[]
+  latitude          Float?   // For the map
+  longitude         Float?   // For the map
+  destLatitude      Float?
+  destLongitude     Float?
+}
+
+model Booking {
+  id           String   @id @default(uuid())
+  flightId     String
+  userId       String
+  priceOffered Float?
+  costShare    Boolean  @default(false)
+  passengers   Int      @default(1)
+  status       String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt    DateTime @default(now())
+  flight       Flight   @relation(fields: [flightId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+}
