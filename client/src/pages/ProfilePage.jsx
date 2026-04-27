@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Plane, Calendar } from 'lucide-react';
+import { API_BASE_URL } from '../api';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -9,7 +10,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) return;
-    fetch(`http://localhost:5000/api/bookings/user/${user.id}`)
+    fetch(`${API_BASE_URL}/api/bookings/user/${user.id}`)
       .then(res => res.json())
       .then(data => { setBookings(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });

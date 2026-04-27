@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, X, CheckCircle, TrendingUp, Users, DollarSign, Activity, Trash2, Edit2 } from 'lucide-react';
 import FlightCard from '../components/FlightCard';
+import { API_BASE_URL } from '../api';
 
 const AIRCRAFT_TYPES = ['Gulfstream G650', 'Citation X', 'Challenger 350', 'Global 7500', 'Phenom 300', 'Learjet 75'];
 const AIRPORTS = [
@@ -28,7 +29,7 @@ function AddFlightModal({ onClose, onAdded }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/flights', {
+      const res = await fetch(`${API_BASE_URL}/api/flights`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +138,7 @@ function EditFlightModal({ flight, onClose, onUpdated }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/flights/${flight.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/flights/${flight.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,8 +215,8 @@ export default function OperatorPortal() {
     setLoading(true);
     try {
       const [flightsRes, analyticsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/flights'),  // MVP: just fetch all, in prod filter by operatorId
-        fetch(`http://localhost:5000/api/analytics/operator/${OPERATOR_ID}`)
+        fetch(`${API_BASE_URL}/api/flights`),  // MVP: just fetch all, in prod filter by operatorId
+        fetch(`${API_BASE_URL}/api/analytics/operator/${OPERATOR_ID}`)
       ]);
       const flightsData = await flightsRes.json();
       const analyticsData = await analyticsRes.json();
@@ -233,7 +234,7 @@ export default function OperatorPortal() {
   const handleDelete = async (flightId) => {
     if (!window.confirm("Are you sure you want to delete this flight?")) return;
     try {
-      await fetch(`http://localhost:5000/api/flights/${flightId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/flights/${flightId}`, { method: 'DELETE' });
       fetchData();
     } catch (err) {
       console.error(err);

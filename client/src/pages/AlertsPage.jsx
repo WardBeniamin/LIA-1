@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Bell, Trash2, Plus } from 'lucide-react';
+import { API_BASE_URL } from '../api';
 
 export default function AlertsPage() {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ export default function AlertsPage() {
   const fetchAlerts = () => {
     if (!user) return;
     setLoading(true);
-    fetch(`http://localhost:5000/api/alerts?userId=${user.id}`)
+    fetch(`${API_BASE_URL}/api/alerts?userId=${user.id}`)
       .then(res => res.json())
       .then(data => { setAlerts(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
@@ -23,7 +24,7 @@ export default function AlertsPage() {
     e.preventDefault();
     if (!newRoute.trim()) return;
     try {
-      await fetch('http://localhost:5000/api/alerts', {
+      await fetch(`${API_BASE_URL}/api/alerts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, route: newRoute })
@@ -37,7 +38,7 @@ export default function AlertsPage() {
 
   const handleDeleteAlert = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/alerts/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/alerts/${id}`, { method: 'DELETE' });
       fetchAlerts();
     } catch (err) {
       console.error(err);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SearchBar from '../components/SearchBar';
 import FlightCard from '../components/FlightCard';
 import FlightMap from '../components/FlightMap';
+import { API_BASE_URL } from '../api';
 
 export default function Dashboard() {
   const [flights, setFlights] = useState([]);
@@ -15,7 +16,7 @@ export default function Dashboard() {
       setError(null);
       try {
         const query = new URLSearchParams(filters).toString();
-        const res = await fetch(`http://localhost:5000/api/flights?${query}`);
+        const res = await fetch(`${API_BASE_URL}/api/flights?${query}`);
         if (!res.ok) throw new Error('Server error');
         const data = await res.json();
         setFlights(data);
