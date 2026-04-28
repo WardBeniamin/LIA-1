@@ -8,51 +8,80 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-  createdAt DateTime @default(now())
-  bookings  Booking[]
+  id          String    @id @default(uuid())
+  email       String    @unique
+  name        String
+  password    String
+  phone       String?
+  savedSearches SavedSearch[]
+  bookings    Booking[]
+  alerts      Alert[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Operator {
-  id          String   @id @default(uuid())
-  companyName String
-  email       String   @unique
-  password    String
-  verified    Boolean  @default(false)
-  flights     Flight[]
+  id              String    @id @default(uuid())
+  companyName     String
+  email           String    @unique
+  password        String
+  phone           String?
+  verified        Boolean   @default(false)
+  verificationDate DateTime?
+  flights         Flight[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Flight {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   departureLocation String
   arrivalLocation   String
   departureTime     DateTime
   arrivalTime       DateTime
   aircraftType      String
   capacity          Int
-  price             Float?   // Optional for "Name your price"
-  status            String   @default("AVAILABLE") // AVAILABLE, BOOKED, CANCELLED
+  price             Float?    // Optional for "Name your price"
+  status            String    @default("AVAILABLE") // AVAILABLE, BOOKED, CANCELLED
   operatorId        String
-  operator          Operator @relation(fields: [operatorId], references: [id])
+  operator          Operator  @relation(fields: [operatorId], references: [id])
   bookings          Booking[]
-  latitude          Float?   // For the map
-  longitude         Float?   // For the map
+  latitude          Float?    // For the map
+  longitude         Float?    // For the map
   destLatitude      Float?
   destLongitude     Float?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Booking {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   flightId     String
   userId       String
   priceOffered Float?
-  costShare    Boolean  @default(false)
-  passengers   Int      @default(1)
-  status       String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
-  createdAt    DateTime @default(now())
-  flight       Flight   @relation(fields: [flightId], references: [id])
-  user         User     @relation(fields: [userId], references: [id])
+  costShare    Boolean   @default(false)
+  passengers   Int       @default(1)
+  status       String    @default("PENDING") // PENDING, ACCEPTED, REJECTED, COMPLETED
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  flight       Flight    @relation(fields: [flightId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedSearch {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  filters     String    // JSON string with search filters
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id          String    @id @default(uuid())
+  userId      String
+  route       String    // e.g., "Dubai-London" or just "Dubai"
+  criteria    String?   // JSON with additional criteria (price range, aircraft type)
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
