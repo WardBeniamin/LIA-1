@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, Lock, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../api';
 
 export default function BookingModal({ flight, onClose }) {
   const { user } = useAuth();
@@ -23,20 +24,22 @@ export default function BookingModal({ flight, onClose }) {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/bookings', {
+      const res = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           flightId: flight.id,
-          userId: user.id || 'mock-user-123',
+          userId: user?.id || 'mock-user-123',
           priceOffered: parseFloat(priceOffer),
           costShare,
           passengers: parseInt(passengers)
         })
       });
       if (res.ok) setSuccess(true);
+      else alert('Booking failed. Please try again.');
     } catch (err) {
       console.error(err);
+      alert('Error connecting to server.');
     } finally {
       setLoading(false);
     }
@@ -83,6 +86,18 @@ export default function BookingModal({ flight, onClose }) {
                   Operator may accept or counter your offer.
                 </span>
               )}
+            </div>
+
+            <div className="input-group" style={{ marginBottom: '1rem' }}>
+              <label>Number of Passengers</label>
+              <input
+                type="number" required min={1} max={flight.capacity}
+                className="input-control"
+                value={passengers} onChange={e => setPassengers(e.target.value)}
+              />
+              <span className="text-muted text-center" style={{ fontSize: '0.8rem', marginTop: '0.4rem', display: 'block' }}>
+                Available seats: {flight.capacity}
+              </span>
             </div>
 
             <div className="panel" style={{ padding: '1rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
