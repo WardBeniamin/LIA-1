@@ -25,7 +25,9 @@ export default function ProfilePage() {
         setLoading(false);
       })
       .catch(err => { console.error(err); setLoading(false); });
-  }, [user]);\n\n  const handleUpdateProfile = async () => {
+  }, [user]);
+
+  const handleUpdateProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/users/${user.id}`, {
         method: 'PATCH',
@@ -39,14 +41,16 @@ export default function ProfilePage() {
     } catch (err) {
       console.error(err);
     }
-  };\n\n  const handleDeleteSavedSearch = async (id) => {
+  };
+
+  const handleDeleteSavedSearch = async (id) => {
     try {
       await fetch(`${API_BASE_URL}/api/saved-searches/${id}`, { method: 'DELETE' });
       setSavedSearches(savedSearches.filter(s => s.id !== id));
     } catch (err) {
       console.error(err);
     }
-  };  
+  };
 
   if (!user) {
     return (
@@ -120,6 +124,7 @@ export default function ProfilePage() {
       )}
 
       {/* Flight Bookings */}
+      <div className="panel">
         <div className="panel-header">
           <h2 className="section-title" style={{ margin: 0 }}>Your Flight Requests</h2>
           <span className="badge badge-blue">{bookings.length} Bookings</span>
