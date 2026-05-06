@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Bell, Trash2, Plus } from 'lucide-react';
+import { Bell, Trash2, Plus, Plane } from 'lucide-react';
+import FlightCard from '../components/FlightCard';
 import { API_BASE_URL } from '../api';
 
 export default function AlertsPage() {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
+  const [matchingFlights, setMatchingFlights] = useState({});
   const [loading, setLoading] = useState(true);
   const [newRoute, setNewRoute] = useState('');
 
@@ -14,7 +16,24 @@ export default function AlertsPage() {
     setLoading(true);
     fetch(`${API_BASE_URL}/api/alerts?userId=${user.id}`)
       .then(res => res.json())
-      .then(data => { setAlerts(data); setLoading(false); })
+      .then(data => { 
+        setAlerts(data); 
+        // Fetch matching flights for this user
+        return fetch(`${API_BASE_URL}/api/matching-flights/${user.id}`);
+      })
+      .then(res => res.json())
+      .then(data => { 
+        // Group matching flights by alert (route-based matching)
+        const grouped = {};
+        alerts.forEach(alert => {
+          grouped[alert.id] = data.filter(flight => 
+            flight.departureLocation.toLowerCase().includes(alert.route.toLowerCase()) ||
+            flight.arrivalLocation.toLowerCase().includes(alert.route.toLowerCase())
+          );
+        });
+        setMatchingFlights(grouped);
+        setLoading(false); 
+      })
       .catch(err => { console.error(err); setLoading(false); });
   };
 
@@ -93,19 +112,39 @@ export default function AlertsPage() {
         ) : (
           <div className="flex flex-col gap-sm">
             {alerts.map(alert => (
-              <div key={alert.id} className="alert-item">
-                <div className="flex items-center gap-md">
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
-                    <Bell size={18} />
+              <div key={alert.id} className="panel" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
+                      <Bell size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>{alert.route}</h3>
+                      <p className="text-xs text-muted">Created {new Date(alert.createdAt).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: '1rem' }}>{alert.route}</h3>
-                    <p className="text-xs text-muted">Created {new Date(alert.createdAt).toLocaleDateString()}</p>
-                  </div>
+                  <button className="btn btn-ghost" onClick={() => handleDeleteAlert(alert.id)} style={{ color: 'var(--danger)' }}>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-                <button className="btn btn-ghost" onClick={() => handleDeleteAlert(alert.id)} style={{ color: 'var(--danger)' }}>
-                  <Trash2 size={16} />
-                </button>
+                
+                {/* Matching flights for this alert */}
+                <div>
+                  {matchingFlights[alert.id] && matchingFlights[alert.id].length > 0 ? (
+                    <div>
+                      <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Plane size={16} /> {matchingFlights[alert.id].length} matching flight{matchingFlights[alert.id].length !== 1 ? 's' : ''}
+                      </p>
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        {matchingFlights[alert.id].slice(0, 3).map((flight, idx) => (
+                          <FlightCard key={flight.id} flight={flight} index={idx} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-muted" style={{ fontSize: '0.9rem', fontStyle: 'italic' }}>No matching flights yet. Check back soon!</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
