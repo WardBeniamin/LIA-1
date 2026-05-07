@@ -1,25 +1,30 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../api';
 
 export default function AuthModal({ onClose }) {
   const { setUser } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [isOperator, setIsOperator] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', companyName: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
+      const isOp = isOperator && !isLogin;
+      const endpoint = isOp ? '/api/operators/register' : (isLogin ? '/api/auth/login' : '/api/auth/register');
+      const payload = isOp ? { companyName: form.companyName, email: form.email, password: form.password } : form;
+      
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       
@@ -38,18 +43,44 @@ export default function AuthModal({ onClose }) {
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box">
         <button className="modal-close" onClick={onClose}><X size={16} /></button>
-        <h2 style={{ marginBottom: '0.25rem' }}>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+        <h2 style={{ marginBottom: '0.25rem' }}>
+          {isOperator 
+            ? (isLogin ? 'Operator Login' : 'Register Operator') 
+            : (isLogin ? 'Welcome Back' : 'Create Account')}
+        </h2>
         <p className="text-muted" style={{ marginBottom: '1.5rem' }}>
-          {isLogin ? 'Sign in to manage your private flights.' : 'Join AeroEmpty today.'}
+          {isOperator 
+            ? 'Manage your empty leg flights.' 
+            : (isLogin ? 'Sign in to book private flights.' : 'Join AeroEmpty today.')}
         </p>
 
         {error && <div className="badge badge-red mb-3" style={{ display: 'block', padding: '0.75rem' }}>{error}</div>}
 
+        {!isLogin && (
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="radio" checked={!isOperator} onChange={() => setIsOperator(false)} />
+              Passenger
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="radio" checked={isOperator} onChange={() => setIsOperator(true)} />
+              Operator
+            </label>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-md">
-          {!isLogin && (
+          {!isLogin && !isOperator && (
             <div className="input-group">
               <label>Full Name</label>
               <input type="text" className="input-control" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+            </div>
+          )}
+
+          {!isLogin && isOperator && (
+            <div className="input-group">
+              <label>Company Name</label>
+              <input type="text" className="input-control" required value={form.companyName} onChange={e => setForm({...form, companyName: e.target.value})} />
             </div>
           )}
           
