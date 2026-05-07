@@ -1,7 +1,21 @@
 {
   "name": "lia-1",
   "version": "1.0.0",
-  "description": "LIA-1 Flight Booking Application",
+  "description": "AeroEmpty - Private Empty Leg Flights Platform",
+  "author": "AeroEmpty Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WardBeniamin/LIA-1.git"
+  },
+  "homepage": "https://github.com/WardBeniamin/LIA-1#readme",
+  "keywords": [
+    "aviation",
+    "flights",
+    "booking",
+    "empty-legs",
+    "private-jets"
+  ],
   "scripts": {
     "install:server": "cd server && npm install",
     "build:server": "cd server && npm install",
