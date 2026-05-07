@@ -206,6 +206,7 @@ function EditFlightModal({ flight, onClose, onUpdated }) {
 
 export default function OperatorPortal() {
   const [flights, setFlights] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingFlight, setEditingFlight] = useState(null);
@@ -214,14 +215,17 @@ export default function OperatorPortal() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [flightsRes, analyticsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/flights`),  // MVP: just fetch all, in prod filter by operatorId
-        fetch(`${API_BASE_URL}/api/analytics/operator/${OPERATOR_ID}`)
+      const [flightsRes, analyticsRes, bookingsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/flights`),
+        fetch(`${API_BASE_URL}/api/analytics/operator/${OPERATOR_ID}`),
+        fetch(`${API_BASE_URL}/api/bookings/operator/${OPERATOR_ID}`)
       ]);
       const flightsData = await flightsRes.json();
       const analyticsData = await analyticsRes.json();
+      const bookingsData = await bookingsRes.json();
       setFlights(flightsData);
       setAnalytics(analyticsData);
+      setBookings(bookingsData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -286,6 +290,44 @@ export default function OperatorPortal() {
           </div>
         </div>
       )}
+
+      <div className="panel">
+        <div className="panel-header">
+          <h2 className="section-title" style={{ margin: 0 }}>Booking Requests</h2>
+          <span className="badge badge-blue">{bookings.length} Pending</span>
+        </div>
+
+        {bookings.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+            <p>No booking requests yet.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {bookings.map(booking => (
+              <div key={booking.id} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Booking #{booking.id.slice(0, 8)}</h3>
+                    <p className="text-xs text-muted">{new Date(booking.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`badge ${booking.status === 'PENDING' ? 'badge-yellow' : booking.status === 'ACCEPTED' ? 'badge-green' : 'badge-red'}`}>
+                    {booking.status}
+                  </span>
+                </div>
+                <p className="text-sm" style={{ marginBottom: '0.75rem' }}>
+                  <strong>{booking.passengers} passenger{booking.passengers !== 1 ? 's' : ''}</strong> — {booking.priceOffered ? `Offered €${booking.priceOffered.toLocaleString()}` : 'Standard pricing'}
+                </p>
+                {booking.status === 'PENDING' && (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn btn-primary btn-sm">Accept</button>
+                    <button className="btn btn-outline btn-sm">Decline</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="panel">
         <div className="panel-header">
